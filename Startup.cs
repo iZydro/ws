@@ -67,10 +67,23 @@ namespace EchoApp
             app.UseFileServer();
         }
 
+        private async Task Looper(HttpContext context, WebSocket webSocket)
+        {
+            while (true)
+            {
+                await Task.Delay(1000);
+                var result = Encoding.ASCII.GetBytes("Somormujo");;
+                await webSocket.SendAsync(new ArraySegment<byte>(result, 0, result.Length), WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+
         private async Task Echo(HttpContext context, WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+            Task.Run(() => Looper(context, webSocket));
+
             while (!result.CloseStatus.HasValue)
             {
                 var ferbuf = new byte[1024 * 4];
@@ -80,7 +93,7 @@ namespace EchoApp
                 }
                 
                 await webSocket.SendAsync(new ArraySegment<byte>(ferbuf, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
-
+                
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
