@@ -16,10 +16,13 @@ namespace EchoApp
 {
     public class Startup
     {
+        public static List<WebSocket> ConnectedSockets = new List<WebSocket>();
+        
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,13 +46,30 @@ namespace EchoApp
             app.UseWebSockets(webSocketOptions);
 #endif
 
+            app.UseCors(builder => builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                // .AllowCredentials()
+            );
+
+            Task.Run(() => SocketWatcher.Run());
+            
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path == "/ws")
+                if (context.Request.Path == "/status")
+                {
+                    Console.WriteLine("Status");
+                    await context.Response.WriteAsync(SocketWatcher.ListAll());
+                }
+                else if (context.Request.Path == "/ws")
                 {
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+
+                        ConnectedSockets.Add(webSocket);
+                        
                         await Echo(context, webSocket);
                     }
                     else
@@ -69,33 +89,36 @@ namespace EchoApp
 
         private async Task Looper(HttpContext context, WebSocket webSocket)
         {
+            var cnt = 0;
             while (true)
             {
-                await Task.Delay(1000);
-                var result = Encoding.ASCII.GetBytes("Somormujo");;
+                await Task.Delay(4000);
+                var result = Encoding.ASCII.GetBytes("Somormujo " + cnt++);;
                 await webSocket.SendAsync(new ArraySegment<byte>(result, 0, result.Length), WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
 
         private async Task Echo(HttpContext context, WebSocket webSocket)
         {
+            Task.Run(() => Looper(context, webSocket));
+
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-            Task.Run(() => Looper(context, webSocket));
-
             while (!result.CloseStatus.HasValue)
             {
+                await SocketWatcher.SendAll(result, buffer);
                 var ferbuf = new byte[1024 * 4];
                 for (var i = 0; i < result.Count; i++)
                 {
                     ferbuf[result.Count - i - 1] = buffer[i];
                 }
-                
+
                 await webSocket.SendAsync(new ArraySegment<byte>(ferbuf, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
                 
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
+            Console.WriteLine("Socket closing!");
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
     }
