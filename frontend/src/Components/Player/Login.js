@@ -43,14 +43,14 @@ class Login extends React.Component {
 
 		console.log("Server");
 		console.log(this.state.server);
-		var end = this.state.server.length;
-		var start = end - 4 >= 0 ? end - 4 : 0;
+		const end = this.state.server.length;
+		const start = end - 4 >= 0 ? end - 4 : 0;
 
 		return(
 			<div>
 				<input name={"email"} value={this.state.email} onChange={this.changeText.bind(this)}/>
 				<input type="password" name={"password"} value={this.state.password} onChange={this.changeText.bind(this)} />
-				<button onClick={() => onClick()}>
+				<button onClick={() => onClick(this.props.name)}>
 					Login
 				</button>
 				<pre>
@@ -58,20 +58,6 @@ class Login extends React.Component {
 						this.state.server.slice(start, end).map( s => s + "\n")
 					}
 				</pre>
-			</div>
-		);
-	}
-
-	render_() {
-		const { onClick } = this.props;
-
-		return(
-			<div>
-				<input name={"email"} value={this.state.email} onChange={this.changeText.bind(this)}/>
-				<input type="password" name={"password"} value={this.state.password} onChange={this.changeText.bind(this)} />
-				<button onClick={() => onClick(this.state.email, this.state.password)}>
-					Login
-				</button>
 			</div>
 		);
 	}

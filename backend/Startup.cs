@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +22,7 @@ namespace EchoApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddRouting();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,53 +53,51 @@ namespace EchoApp
                 // .AllowCredentials()
             );
 
+            app.UseRouting();
+
+            app.UseFileServer();
+
             Task.Run(() => SocketWatcher.Run());
-            
-            app.Use(async (context, next) =>
+
+            app.UseEndpoints(endpoints =>
             {
-                if (context.Request.Path == "/status")
+                endpoints.MapGet("/status", async (context) =>
                 {
                     await context.Response.WriteAsync(SocketWatcher.ListAll());
-                }
-                else if (context.Request.Path == "/ws")
+                });
+
+                endpoints.MapGet("/ws/{name}", async (context) =>
                 {
                     if (context.WebSockets.IsWebSocketRequest)
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-
-                        SocketWatcher.Add(webSocket);
-                        
+                        var name = context.GetRouteValue("name");
+                        SocketWatcher.Add(webSocket, name.ToString());
                         await Echo(context, webSocket);
                     }
                     else
                     {
                         context.Response.StatusCode = 400;
                     }
-                }
-                else
-                {
-                    await next();
-                }
-
+                });
             });
 
-            app.UseFileServer();
         }
 
-        private async Task Looper(HttpContext context, WebSocket webSocket)
+        private async Task Loop(HttpContext context, WebSocket webSocket)
         {
             var cnt = 0;
             while (true)
             {
                 await Task.Delay(4000);
-                var result = Encoding.ASCII.GetBytes("Somormujo " + cnt++);;
+                var result = Encoding.ASCII.GetBytes("Loop " + cnt++);;
                 await webSocket.SendAsync(new ArraySegment<byte>(result, 0, result.Length), WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
 
         private async Task Echo(HttpContext context, WebSocket webSocket)
         {
-            Task.Run(() => Looper(context, webSocket));
+            Task.Run(() => Loop(context, webSocket));
 
             var buffer = new byte[1024 * 4];
             WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);

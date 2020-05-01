@@ -37,7 +37,7 @@ class Status extends React.Component {
 	onPlay(name, value) {
 		console.log("Play");
 		const socket = this.state.socket;
-		socket.send(value);
+		socket.send(this.props.name + ": " + value);
 	}
 
 	onDisconnect() {
@@ -52,8 +52,8 @@ class Status extends React.Component {
 		});
 	}
 
-	onConnect() {
-		const socket = new WebSocket(this.connectionUrl.value);
+	onConnect(name) {
+		const socket = new WebSocket(this.connectionUrl.value + "/" + name);
 		this.setState({
 			socket: socket
 		});
@@ -83,7 +83,7 @@ class Status extends React.Component {
 		return(
 			<div>
 				{"Player: " + this.props.name}
-				{!socket && <Login onClick={this.onConnect.bind(this)} />}
+				{!socket && <Login name={this.props.name} onClick={this.onConnect.bind(this)} />}
 				{socket && <Logout onClick={this.onDisconnect.bind(this)} />}
 				{socket && <PlayButton name={this.props.name} onClick={this.onPlay.bind(this)} />}
 				<pre>

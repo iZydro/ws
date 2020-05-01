@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -8,26 +9,38 @@ using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 
 namespace EchoApp
 {
+    public class ZydroSocket
+    {
+        public WebSocket WebSocket;
+        public string username;
+    }
+    
     public static class SocketWatcher
     {
-        public static List<WebSocket> ConnectedSockets = new List<WebSocket>();
+        private static readonly List<ZydroSocket> ConnectedSockets = new List<ZydroSocket>();
         
-        public static void Add(WebSocket socket)
+        public static void Add(WebSocket socket, string name)
         {
-            ConnectedSockets.Add(socket);
+            ConnectedSockets.Add(new ZydroSocket
+            {
+                WebSocket = socket,
+                username = name
+            });
         }
 
         public static void Delete(WebSocket socket)
         {
-            ConnectedSockets.Remove(socket);
+            ConnectedSockets.Remove(ConnectedSockets.Find((s) => s.WebSocket == socket));
         }
 
         public static string ListAll()
         {
-            string result = String.Empty;
+            var result = "";
             foreach (var socket in ConnectedSockets)
             {
-                result += socket.State;
+                result += socket.WebSocket.State;
+                result += ": ";
+                result += socket.username;
                 result += "\n";
             }
 
@@ -42,9 +55,13 @@ namespace EchoApp
                 await Task.Delay(5000);
                 foreach (var socket in ConnectedSockets)
                 {
-                    var result = Encoding.ASCII.GetBytes("Cagamandurrio " + cnt);
-                    await socket.SendAsync(new ArraySegment<byte>(result, 0, result.Length), WebSocketMessageType.Text,
-                        true, CancellationToken.None);
+                    var result = Encoding.ASCII.GetBytes("Heartbeat " + cnt);
+                    await socket.WebSocket.SendAsync(
+                        new ArraySegment<byte>(result, 0, result.Length),
+                        WebSocketMessageType.Text,
+                        true,
+                        CancellationToken.None
+                    );
                 }
 
                 cnt++;
@@ -55,7 +72,7 @@ namespace EchoApp
         {
             foreach (var socket in ConnectedSockets)
             {
-                await socket.SendAsync(
+                await socket.WebSocket.SendAsync(
                     new ArraySegment<byte>(buffer, 0, result.Count),
                     result.MessageType,
                     result.EndOfMessage,
