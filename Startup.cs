@@ -16,8 +16,6 @@ namespace EchoApp
 {
     public class Startup
     {
-        public static List<WebSocket> ConnectedSockets = new List<WebSocket>();
-        
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -59,7 +57,6 @@ namespace EchoApp
             {
                 if (context.Request.Path == "/status")
                 {
-                    Console.WriteLine("Status");
                     await context.Response.WriteAsync(SocketWatcher.ListAll());
                 }
                 else if (context.Request.Path == "/ws")
@@ -68,7 +65,7 @@ namespace EchoApp
                     {
                         WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-                        ConnectedSockets.Add(webSocket);
+                        SocketWatcher.Add(webSocket);
                         
                         await Echo(context, webSocket);
                     }
@@ -119,6 +116,7 @@ namespace EchoApp
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             }
             Console.WriteLine("Socket closing!");
+            SocketWatcher.Delete(webSocket);
             await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
         }
     }
