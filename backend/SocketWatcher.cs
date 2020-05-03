@@ -12,12 +12,13 @@ namespace EchoApp
     {
         public WebSocket WebSocket;
         public string Username;
+        public long Points;
         public string Play = "";
     }
 
     public static class SocketWatcher
     {
-        private static readonly List<ZydroSocket> ConnectedSockets = new List<ZydroSocket>();
+        public static readonly List<ZydroSocket> ConnectedSockets = new List<ZydroSocket>();
 
         public static void Add(WebSocket socket, string name)
         {
@@ -55,7 +56,9 @@ namespace EchoApp
                 result += socket.WebSocket.State;
                 result += ": ";
                 result += socket.Username;
-                result += ": ";
+                result += "(";
+                result += socket.Points;
+                result += ") ";
                 result += socket.Play;
                 result += "\n";
             }
@@ -132,6 +135,7 @@ namespace EchoApp
                 await Task.Delay(COUNT_TIME);
                 await SendAll("info", "tijeras");
                 await Task.Delay(2000);
+                Winners.ComputeWinners();
                 await SendAll("info", "Pollo: " + cnt);
                 cnt++;
             }

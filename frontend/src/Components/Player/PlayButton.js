@@ -17,7 +17,7 @@ class PlayButton extends React.Component {
 			<div>
 				<input name="value" value={this.state.value} size="32" onChange={this.handleChange.bind(this)} />
 				<button onClick={() => onClick(name, "chat", this.state.value)}>
-					Play
+					Chat
 				</button>
 
 				<br />

@@ -132,20 +132,20 @@ class Status extends React.Component {
 				{socket && <Logout onClick={this.onDisconnect.bind(this)} />}
 				{socket && <PlayButton disabled={this.state.disabled} name={this.props.name} onClick={this.onPlay.bind(this)} />}
 				<div>
-					<div style={{float: "left"}}>
+					<div style={{float: "left", width: "256px"}}>
 						<pre>{this.state.chat.slice(start, end).map( s => s + "\n")}</pre>
 					</div>
 					<div style={{float: "left", width: "64px"}}>
 						&nbsp;
 					</div>
-					<div style={{float: "left"}}>
-						<pre>{ this.state.info}</pre>
+					<div style={{float: "left", width: "128px"}}>
+						<pre>{this.state.info}</pre>
 					</div>
 					<div style={{float: "left", width: "64px"}}>
 						&nbsp;
 					</div>
-					<div style={{float: "left"}}>
-						<pre>{ this.state.results.map( r => r.username + ": " + r.play + "\n")}</pre>
+					<div style={{float: "left", width: "128px"}}>
+						<pre>{this.state.results.map( r => r.username + ": " + r.play + "\n")}</pre>
 					</div>
 				</div>
 			</div>
