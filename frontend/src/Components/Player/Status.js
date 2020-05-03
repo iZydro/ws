@@ -38,6 +38,7 @@ class Status extends React.Component {
 
 		let disabled = true;
 		try {
+
 			const parsed = JSON.parse(event.data);
 
 			if (parsed.hasOwnProperty("info")) {
@@ -50,11 +51,18 @@ class Status extends React.Component {
 
 			if (parsed.hasOwnProperty("chat")) {
 				const chat = this.state.chat;
-				chat.push(parsed.chat);
+				chat.push(parsed.name + ": " + parsed.chat);
 				this.setState({
 					chat: chat,
 				});
 			}
+
+			if (parsed.hasOwnProperty("results")) {
+				this.setState({
+					results: parsed.results,
+				});
+			}
+
 		}
 		catch(e)
 		{
@@ -115,6 +123,8 @@ class Status extends React.Component {
 		const end = this.state.chat.length;
 		const start = end - HEIGHT_MESSAGES >= 0 ? end - HEIGHT_MESSAGES : 0;
 
+		// console.log(this.state.results);
+
 		return(
 			<div>
 				{"Player: " + this.props.name}
@@ -135,7 +145,7 @@ class Status extends React.Component {
 						&nbsp;
 					</div>
 					<div style={{float: "left"}}>
-						<pre>{ this.state.results.map( r => r + "\n")}</pre>
+						<pre>{ this.state.results.map( r => r.username + ": " + r.play + "\n")}</pre>
 					</div>
 				</div>
 			</div>

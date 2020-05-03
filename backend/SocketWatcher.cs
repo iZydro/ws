@@ -14,11 +14,11 @@ namespace EchoApp
         public string Username;
         public string Play = "";
     }
-    
+
     public static class SocketWatcher
     {
         private static readonly List<ZydroSocket> ConnectedSockets = new List<ZydroSocket>();
-        
+
         public static void Add(WebSocket socket, string name)
         {
             ConnectedSockets.Add(new ZydroSocket
@@ -36,7 +36,7 @@ namespace EchoApp
         public static void Play(WebSocket socket, string play)
         {
             // return;
-            
+
             var zs = ConnectedSockets.Find(s => s.WebSocket == socket);
             if (zs == null)
             {
@@ -46,7 +46,7 @@ namespace EchoApp
 
             zs.Play = play;
         }
-        
+
         public static string ListAll()
         {
             var result = "";
@@ -63,14 +63,41 @@ namespace EchoApp
             return result;
         }
 
+        public static async Task SendResultsAll()
+        {
+            var listResults = new List<Dictionary<string, string>>();
+            foreach (var zs in ConnectedSockets)
+            {
+                listResults.Add(new Dictionary<string, string>
+                {
+                    {"username", zs.Username},
+                    {"play", zs.Play}
+                });
+            }
+
+            var jsonSend = new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                { "results", listResults }
+            };
+            string toSend = JsonConvert.SerializeObject(jsonSend);
+
+            Console.WriteLine("Sending results: " + toSend);
+            await SendStringAll(toSend);
+        }
+
         private static async Task SendAll(string type, string message)
         {
             var jsonSend = new Dictionary<string, string>
             {
-                { type, message }
+                {type, message}
             };
             string toSend = JsonConvert.SerializeObject(jsonSend);
-            
+
+            await SendStringAll(toSend);
+        }
+
+        private static async Task SendStringAll(string toSend)
+        {
             foreach (var socket in ConnectedSockets)
             {
                 if (socket.WebSocket.State == WebSocketState.Open)
@@ -110,7 +137,7 @@ namespace EchoApp
             }
         }
 
-        public static async Task SendAll(WebSocketReceiveResult result, byte[] buffer)
+        public static async Task SendMessageAll(WebSocketReceiveResult result, byte[] buffer)
         {
             foreach (var socket in ConnectedSockets)
             {

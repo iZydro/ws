@@ -116,9 +116,10 @@ namespace EchoApp
                 {
                     // User plays
                     SocketWatcher.Play(webSocket, resultJson["play"]);
+                    await SocketWatcher.SendResultsAll();
                 }
 
-                await SocketWatcher.SendAll(result, buffer);
+                await SocketWatcher.SendMessageAll(result, buffer);
 
                 // Keep reading
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);

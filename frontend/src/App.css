@@ -9,7 +9,7 @@
 }
 
 .Players {
-	width: 100%;
+  width: 100%;
   text-align: left;
   margin: 4px;
 }
@@ -22,12 +22,12 @@
 
 .Left-Column {
   float: left;
-  width: 40%
+  width: 80%
 }
 
 .Right-Column {
   float: left;
-  width: 40%
+  width: 20%
 }
 
 .App-header {
