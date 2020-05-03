@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace EchoApp
 {
@@ -104,16 +106,23 @@ namespace EchoApp
 
             while (!result.CloseStatus.HasValue)
             {
-                await SocketWatcher.SendAll(result, buffer);
-                var ferbuf = new byte[1024 * 4];
-                for (var i = 0; i < result.Count; i++)
+                Console.WriteLine("Received");
+                var resultString = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                Console.WriteLine(resultString);
+
+                var resultJson = JsonConvert.DeserializeObject<Dictionary<string, string>>(resultString);
+                var name = resultJson["name"];
+                if (resultJson.ContainsKey("play"))
                 {
-                    ferbuf[result.Count - i - 1] = buffer[i];
+                    // User plays
+                    SocketWatcher.Play(webSocket, resultJson["play"]);
                 }
 
-                await webSocket.SendAsync(new ArraySegment<byte>(ferbuf, 0, result.Count), result.MessageType, result.EndOfMessage, CancellationToken.None);
-                
+                await SocketWatcher.SendAll(result, buffer);
+
+                // Keep reading
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
             }
             Console.WriteLine("Socket closing!");
             SocketWatcher.Delete(webSocket);

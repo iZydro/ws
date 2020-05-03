@@ -14,6 +14,10 @@ class Status extends React.Component {
 			result: "not logged"
 		},
 		socket: null,
+		disabled: true,
+		info: "",
+		results: [],
+		chat: [],
 		server: []
 	};
 
@@ -26,18 +30,49 @@ class Status extends React.Component {
 	}
 
 	onMessage(event) {
-		console.log(event.data);
-		var copy = this.state.server;
+		const copy = this.state.server;
 		copy.push(event.data);
 		this.setState({
 			server: copy
 		});
+
+		let disabled = true;
+		try {
+			const parsed = JSON.parse(event.data);
+
+			if (parsed.hasOwnProperty("info")) {
+				if (parsed.info.toLowerCase() === "tijeras") disabled = false;
+				this.setState({
+					info: parsed.info,
+					disabled: disabled
+				});
+			}
+
+			if (parsed.hasOwnProperty("chat")) {
+				const chat = this.state.chat;
+				chat.push(parsed.chat);
+				this.setState({
+					chat: chat,
+				});
+			}
+		}
+		catch(e)
+		{
+
+		}
 	}
 
-	onPlay(name, value) {
+	onPlay(name, key, value) {
 		console.log("Play");
+
+		const message = {
+			name: this.props.name,
+			[key]: value,
+		};
+
 		const socket = this.state.socket;
-		socket.send(this.props.name + ": " + value);
+		socket.send(JSON.stringify(message));
+
 	}
 
 	onDisconnect() {
@@ -77,7 +112,7 @@ class Status extends React.Component {
 		const { socket } = this.state;
 		const HEIGHT_MESSAGES = 10;
 
-		const end = this.state.server.length;
+		const end = this.state.chat.length;
 		const start = end - HEIGHT_MESSAGES >= 0 ? end - HEIGHT_MESSAGES : 0;
 
 		return(
@@ -85,12 +120,24 @@ class Status extends React.Component {
 				{"Player: " + this.props.name}
 				{!socket && <Login name={this.props.name} onClick={this.onConnect.bind(this)} />}
 				{socket && <Logout onClick={this.onDisconnect.bind(this)} />}
-				{socket && <PlayButton name={this.props.name} onClick={this.onPlay.bind(this)} />}
-				<pre>
-					{
-						this.state.server.slice(start, end).map( s => s + "\n")
-					}
-				</pre>
+				{socket && <PlayButton disabled={this.state.disabled} name={this.props.name} onClick={this.onPlay.bind(this)} />}
+				<div>
+					<div style={{float: "left"}}>
+						<pre>{this.state.chat.slice(start, end).map( s => s + "\n")}</pre>
+					</div>
+					<div style={{float: "left", width: "64px"}}>
+						&nbsp;
+					</div>
+					<div style={{float: "left"}}>
+						<pre>{ this.state.info}</pre>
+					</div>
+					<div style={{float: "left", width: "64px"}}>
+						&nbsp;
+					</div>
+					<div style={{float: "left"}}>
+						<pre>{ this.state.results.map( r => r + "\n")}</pre>
+					</div>
+				</div>
 			</div>
 		);
 	}

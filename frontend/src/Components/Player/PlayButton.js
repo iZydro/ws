@@ -16,9 +16,22 @@ class PlayButton extends React.Component {
 		return(
 			<div>
 				<input name="value" value={this.state.value} size="32" onChange={this.handleChange.bind(this)} />
-				<button onClick={() => onClick(name, this.state.value)}>
+				<button onClick={() => onClick(name, "chat", this.state.value)}>
 					Play
 				</button>
+
+				<br />
+
+				<button disabled={this.props.disabled} onClick={() => onClick(name, "play", "piedra")}>
+					Piedra
+				</button>
+				<button disabled={this.props.disabled} onClick={() => onClick(name, "play", "papel")}>
+					Papel
+				</button>
+				<button disabled={this.props.disabled} onClick={() => onClick(name, "play", "tijeras")}>
+					Tijeras
+				</button>
+
 			</div>
 		);
 	}

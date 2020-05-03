@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication.OAuth.Claims;
+using Newtonsoft.Json;
 
 namespace EchoApp
 {
     public class ZydroSocket
     {
         public WebSocket WebSocket;
-        public string username;
+        public string Username;
+        public string Play = "";
     }
     
     public static class SocketWatcher
@@ -24,7 +24,7 @@ namespace EchoApp
             ConnectedSockets.Add(new ZydroSocket
             {
                 WebSocket = socket,
-                username = name
+                Username = name,
             });
         }
 
@@ -33,6 +33,20 @@ namespace EchoApp
             ConnectedSockets.Remove(ConnectedSockets.Find((s) => s.WebSocket == socket));
         }
 
+        public static void Play(WebSocket socket, string play)
+        {
+            // return;
+            
+            var zs = ConnectedSockets.Find(s => s.WebSocket == socket);
+            if (zs == null)
+            {
+                Console.WriteLine("Socket does not exist!");
+                return;
+            }
+
+            zs.Play = play;
+        }
+        
         public static string ListAll()
         {
             var result = "";
@@ -40,22 +54,28 @@ namespace EchoApp
             {
                 result += socket.WebSocket.State;
                 result += ": ";
-                result += socket.username;
+                result += socket.Username;
+                result += ": ";
+                result += socket.Play;
                 result += "\n";
             }
 
             return result;
         }
 
-        public static async Task Run()
+        private static async Task SendAll(string type, string message)
         {
-            var cnt = 0;
-            while (true)
+            var jsonSend = new Dictionary<string, string>
             {
-                await Task.Delay(5000);
-                foreach (var socket in ConnectedSockets)
+                { type, message }
+            };
+            string toSend = JsonConvert.SerializeObject(jsonSend);
+            
+            foreach (var socket in ConnectedSockets)
+            {
+                if (socket.WebSocket.State == WebSocketState.Open)
                 {
-                    var result = Encoding.ASCII.GetBytes("Heartbeat " + cnt);
+                    var result = Encoding.ASCII.GetBytes(toSend);
                     await socket.WebSocket.SendAsync(
                         new ArraySegment<byte>(result, 0, result.Length),
                         WebSocketMessageType.Text,
@@ -63,7 +83,29 @@ namespace EchoApp
                         CancellationToken.None
                     );
                 }
-
+            }
+        }
+        
+        public static async Task Run()
+        {
+            var cnt = 0;
+            const int COUNT_TIME = 500;
+            while (true)
+            {
+                await Task.Delay(COUNT_TIME);
+                await SendAll("info", "1");
+                await Task.Delay(COUNT_TIME);
+                await SendAll("info", "2");
+                await Task.Delay(COUNT_TIME);
+                await SendAll("info", "3");
+                await Task.Delay(COUNT_TIME);
+                await SendAll("info", "piedra");
+                await Task.Delay(COUNT_TIME);
+                await SendAll("info", "papel");
+                await Task.Delay(COUNT_TIME);
+                await SendAll("info", "tijeras");
+                await Task.Delay(2000);
+                await SendAll("info", "Pollo: " + cnt);
                 cnt++;
             }
         }
