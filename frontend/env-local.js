@@ -1,3 +1,11 @@
-const SERVER = "http://localhost:5100";
+const connectionUrl = {
+  value: "ws://localhost:5000/ws"
+};
 
-export { SERVER }
+const statusUrl = {
+  value: "http://localhost:5000/status"
+};
+
+const environment = "local";
+
+export { connectionUrl, statusUrl, environment }

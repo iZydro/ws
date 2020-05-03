@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 
-import { SERVER } from '../../Settings'
+import { connectionUrl } from '../../Settings'
 import PlayButton from './PlayButton';
 import Login from './Login';
 import Logout from './Logout';
@@ -19,10 +19,6 @@ class Status extends React.Component {
 		results: [],
 		chat: [],
 		server: []
-	};
-
-	connectionUrl = {
-		value: "ws" + "://" + "localhost:" + "5000" + "/ws"
 	};
 
 	componentDidMount() {
@@ -96,7 +92,7 @@ class Status extends React.Component {
 	}
 
 	onConnect(name) {
-		const socket = new WebSocket(this.connectionUrl.value + "/" + name);
+		const socket = new WebSocket(connectionUrl.value + "/" + name);
 		this.setState({
 			socket: socket
 		});

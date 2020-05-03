@@ -1,3 +1,11 @@
-const SERVER = "http://pve-backend.zydrofighters.com";
+const connectionUrl = {
+  value: "wss://elb.isidrogilabert.com:5080/ws"
+};
 
-export { SERVER }
+const statusUrl = {
+  value: "https://elb.isidrogilabert.com:5080/status"
+};
+
+const environment = "prod";
+
+export { connectionUrl, statusUrl, environment }

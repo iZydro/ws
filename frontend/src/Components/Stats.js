@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 
-import { SERVER } from '../Settings'
+import { statusUrl} from '../Settings'
 
 class Stats extends React.Component {
 
@@ -11,8 +11,6 @@ class Stats extends React.Component {
   };
   
   async onClick() {
-		const url = `${SERVER}/mm/reset`;
-		const result = await axios.get(url);
 		this.setState( { refresh: true } );
   }
 
@@ -21,12 +19,9 @@ class Stats extends React.Component {
 	}
 
 	async readStats() {
-		const connectionUrl = {
-			value: "http" + "://" + "localhost:" + "5000" + "/status"
-		};
 
 		try {
-			const result = await axios.get(connectionUrl.value);
+			const result = await axios.get(statusUrl.value);
 			console.log(`read: ${result.data}`);
 			this.setState( { result: result.data } );
 		}
