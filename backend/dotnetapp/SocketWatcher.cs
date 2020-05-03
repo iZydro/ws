@@ -74,7 +74,8 @@ namespace EchoApp
                 listResults.Add(new Dictionary<string, string>
                 {
                     {"username", zs.Username},
-                    {"play", zs.Play}
+                    {"play", zs.Play},
+                    {"points", "" + zs.Points}
                 });
             }
 
@@ -136,7 +137,8 @@ namespace EchoApp
                 await SendAll("info", "tijeras");
                 await Task.Delay(2000);
                 Winners.ComputeWinners();
-                await SendAll("info", "Pollo: " + cnt);
+                await SendResultsAll();
+                await SendAll("info", "Round: " + cnt);
                 cnt++;
             }
         }

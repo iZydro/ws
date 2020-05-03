@@ -3,13 +3,18 @@ import React from 'react';
 class Login extends React.Component {
 
 	state = {
+		name: "",
 		email: "",
 		password: "",
 		server: []
 	};
 
-	changeText(event) {
-		this.setState({[event.target.name]: event.target.value});
+	componentWillReceiveProps(nextProps) {
+		this.setState({ name: nextProps.name });
+	}
+
+	componentDidMount() {
+		this.componentWillReceiveProps(this.props);
 	}
 
 	onMessage(event) {
@@ -41,15 +46,12 @@ class Login extends React.Component {
 	render() {
 		const { onClick } = this.props;
 
-		console.log("Server");
-		console.log(this.state.server);
 		const end = this.state.server.length;
 		const start = end - 4 >= 0 ? end - 4 : 0;
 
 		return(
 			<div>
-				<input name={"email"} value={this.state.email} onChange={this.changeText.bind(this)}/>
-				<input type="password" name={"password"} value={this.state.password} onChange={this.changeText.bind(this)} />
+				<input name={"name"} value={this.state.name} onChange={this.props.onChange}/>
 				<button onClick={() => onClick(this.props.name)}>
 					Login
 				</button>

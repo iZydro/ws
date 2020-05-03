@@ -22,7 +22,6 @@ class Stats extends React.Component {
 
 		try {
 			const result = await axios.get(statusUrl.value);
-			console.log(`read: ${result.data}`);
 			this.setState( { result: result.data } );
 		}
 		catch(e) {

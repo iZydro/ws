@@ -1,2 +1,2 @@
 #!/bin/bash
-docker push 568076559061.dkr.ecr.eu-west-1.amazonaws.com/zydro-pve-frontend:latest
+docker push 276623230946.dkr.ecr.us-east-1.amazonaws.com/rps-frontend:latest
